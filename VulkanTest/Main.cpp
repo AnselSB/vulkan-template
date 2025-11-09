@@ -1,11 +1,11 @@
 #include <vulkan/vulkan.h>
-#include "HelloTriangleApplication.h"
+#include "App.h"
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
 
 int main() {
-    HelloTriangleApplication app;
+    App app;
 
     try {
         app.run();

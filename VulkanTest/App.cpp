@@ -1,4 +1,4 @@
-#include "HelloTriangleApplication.h"
+#include "App.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -78,7 +78,7 @@ const std::vector<const char*> deviceExtensions = {
 };
 
 
-void HelloTriangleApplication::readCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void App::readCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = 0; // Optional
@@ -163,14 +163,14 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 	}
 }
 
-void HelloTriangleApplication::run() {
+void App::run() {
 	this->initWindow();
 	this->initVulkan();
 	this->mainLoop();
 	this->cleanup();
 }
 
-void HelloTriangleApplication::createInstance() {
+void App::createInstance() {
 
 	if (enableValidationLayers && !checkValidationLayerSupport()) {
 		throw std::runtime_error("Validation layers requested but are not available on this machine.");
@@ -231,7 +231,7 @@ void HelloTriangleApplication::createInstance() {
 
 }
 
-void HelloTriangleApplication::initVulkan() {
+void App::initVulkan() {
 	// making an instance, this is connection between vulkan and this application
 	createInstance();
 	setupDebugMessenger();
@@ -254,13 +254,13 @@ void HelloTriangleApplication::initVulkan() {
 }
 
 
-void HelloTriangleApplication::createSurface() {
+void App::createSurface() {
 	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create window surface (uhb oh that's probably really fucking bad)");
 	}
 }
 
-void HelloTriangleApplication::populateMessengerCreate(VkDebugUtilsMessengerCreateInfoEXT* createInfo) {
+void App::populateMessengerCreate(VkDebugUtilsMessengerCreateInfoEXT* createInfo) {
 	createInfo->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 	createInfo->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 	createInfo->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
@@ -269,7 +269,7 @@ void HelloTriangleApplication::populateMessengerCreate(VkDebugUtilsMessengerCrea
 
 }
 
-void HelloTriangleApplication::setupDebugMessenger() {
+void App::setupDebugMessenger() {
 	if (!enableValidationLayers) return;
 	VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 	this->populateMessengerCreate(&createInfo);
@@ -281,7 +281,7 @@ void HelloTriangleApplication::setupDebugMessenger() {
 
 }
 
-void HelloTriangleApplication::mainLoop() {
+void App::mainLoop() {
 	// have an event loop that continues until eventually the window closes or an error is thrown
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents(); // there should be a way to also send out this signal ourselves without clicking the "x" button
@@ -295,7 +295,7 @@ void HelloTriangleApplication::mainLoop() {
 }
 
 // this will probably go throught he most permutations when we start refactoring since I want to trim a bit of the app object to be a bit simpler
-void HelloTriangleApplication::drawFrame() {
+void App::drawFrame() {
 	// first we wait for previous frame to complete draw on the cpu, wait on fence
 	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -364,7 +364,7 @@ void HelloTriangleApplication::drawFrame() {
 
 }
 
-void HelloTriangleApplication::cleanup() {
+void App::cleanup() {
 	cleanupSwapChain();
 
 	vkDestroyPipeline(device, graphicsPipeline, nullptr);
@@ -401,12 +401,12 @@ void HelloTriangleApplication::cleanup() {
 
 
 static void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
-	auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+	auto app = reinterpret_cast<App*>(glfwGetWindowUserPointer(window));
 	app->isResized = true;
 
 }
 // pretty self explanatory what this does
-void HelloTriangleApplication::initWindow() {
+void App::initWindow() {
 	// first we initialize the glfw library and then immeditaely tell it not to you use opengl context
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -416,7 +416,7 @@ void HelloTriangleApplication::initWindow() {
 	glfwSetFramebufferSizeCallback(window, frameBufferResizeCallback);
 }
 
-bool HelloTriangleApplication::checkValidationLayerSupport() {
+bool App::checkValidationLayerSupport() {
 	uint32_t validationCount = 0;
 	vkEnumerateInstanceLayerProperties(&validationCount, nullptr);
 
@@ -439,7 +439,7 @@ bool HelloTriangleApplication::checkValidationLayerSupport() {
 }
 
 
-std::vector<const char*>HelloTriangleApplication::getRequiredExtensions() {
+std::vector<const char*>App::getRequiredExtensions() {
 	// I didn't realize that putting less comments actually makes stuff so much nicer to look at
 	uint32_t glfwExtensionCount = 0;
 	const char** glfwExtensions;
@@ -475,7 +475,7 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
 
 
 
-int HelloTriangleApplication::getDeviceScore(VkPhysicalDevice device) {
+int App::getDeviceScore(VkPhysicalDevice device) {
 	// get the device properties
 	VkPhysicalDeviceProperties deviceProps;
 	VkPhysicalDeviceFeatures deviceFeats;
@@ -515,7 +515,7 @@ int HelloTriangleApplication::getDeviceScore(VkPhysicalDevice device) {
 
 
 
-void HelloTriangleApplication::pickPhysicalDevice() {
+void App::pickPhysicalDevice() {
 
 	// time to query for the number of available devices, I think eventually I wanna extend this out so that a user can pick which gpu they want to use (may not be necessary tho)
 	uint32_t deviceCount = 0;
@@ -543,7 +543,7 @@ void HelloTriangleApplication::pickPhysicalDevice() {
 
 }
 
-void HelloTriangleApplication::createLogicalDevice() {
+void App::createLogicalDevice() {
 
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -591,7 +591,7 @@ void HelloTriangleApplication::createLogicalDevice() {
 	vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
-QueueFamilyIndices HelloTriangleApplication::findQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices App::findQueueFamilies(VkPhysicalDevice device) {
 	QueueFamilyIndices indices;
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -620,7 +620,7 @@ QueueFamilyIndices HelloTriangleApplication::findQueueFamilies(VkPhysicalDevice 
 
 }
 
-SwapChainSupportDetails HelloTriangleApplication::querySwapChainSupport(VkPhysicalDevice device) {
+SwapChainSupportDetails App::querySwapChainSupport(VkPhysicalDevice device) {
 	// start by declaring the details object we are going to generate
 	SwapChainSupportDetails details;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -645,7 +645,7 @@ SwapChainSupportDetails HelloTriangleApplication::querySwapChainSupport(VkPhysic
 	return details;
 }
 
-VkSurfaceFormatKHR HelloTriangleApplication::chooseSwapFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+VkSurfaceFormatKHR App::chooseSwapFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
 	for (const auto& format : availableFormats) {
 		if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 			return format;
@@ -656,7 +656,7 @@ VkSurfaceFormatKHR HelloTriangleApplication::chooseSwapFormat(const std::vector<
 }
 
 
-VkPresentModeKHR HelloTriangleApplication::choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes) {
+VkPresentModeKHR App::choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes) {
 	for (const auto& mode : availableModes) {
 		if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
 			return mode;
@@ -666,7 +666,7 @@ VkPresentModeKHR HelloTriangleApplication::choosePresentMode(const std::vector<V
 }
 
 
-VkExtent2D HelloTriangleApplication::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D App::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
@@ -687,7 +687,7 @@ VkExtent2D HelloTriangleApplication::chooseSwapExtent(const VkSurfaceCapabilitie
 }
 
 
-void HelloTriangleApplication::createSwapChain() {
+void App::createSwapChain() {
 	SwapChainSupportDetails chainSupport = querySwapChainSupport(physicalDevice);
 
 	VkSurfaceFormatKHR surfaceFmt = chooseSwapFormat(chainSupport.formats);
@@ -739,7 +739,7 @@ void HelloTriangleApplication::createSwapChain() {
 }
 
 
-void HelloTriangleApplication::createImageViews() {
+void App::createImageViews() {
 	swapChainImageViews.resize(swapChainImages.size());
 	for (size_t i = 0; i < swapChainImages.size(); ++i) {
 		VkImageViewCreateInfo createInfo{};
@@ -768,7 +768,7 @@ void HelloTriangleApplication::createImageViews() {
 }
 
 
-void HelloTriangleApplication::createGraphicsPipeline() {
+void App::createGraphicsPipeline() {
 	auto vertShaderCode = readFile("shaders/vert.spv");
 	auto fragShaderCode = readFile("shaders/frag.spv");
 
@@ -884,7 +884,7 @@ void HelloTriangleApplication::createGraphicsPipeline() {
 }
 
 
-void HelloTriangleApplication::createRenderPass() {
+void App::createRenderPass() {
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapChainImageFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -950,7 +950,7 @@ void HelloTriangleApplication::createRenderPass() {
 
 
 
-VkShaderModule HelloTriangleApplication::createShaderModule(const std::vector<char>& code) {
+VkShaderModule App::createShaderModule(const std::vector<char>& code) {
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.codeSize = code.size();
@@ -963,7 +963,7 @@ VkShaderModule HelloTriangleApplication::createShaderModule(const std::vector<ch
 
 }
 
-void HelloTriangleApplication::createFrameBuffers() {
+void App::createFrameBuffers() {
 	swapChainFrameBuffers.resize(swapChainImageViews.size());
 
 	for (size_t i = 0; i < swapChainImageViews.size(); ++i) {
@@ -988,7 +988,7 @@ void HelloTriangleApplication::createFrameBuffers() {
 }
 
 
-void HelloTriangleApplication::createCommandPool() {
+void App::createCommandPool() {
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
 	VkCommandPoolCreateInfo poolInfo{};
@@ -1002,7 +1002,7 @@ void HelloTriangleApplication::createCommandPool() {
 }
 
 
-void HelloTriangleApplication::createCommandBuffers() {
+void App::createCommandBuffers() {
 	commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1016,7 +1016,7 @@ void HelloTriangleApplication::createCommandBuffers() {
 	}
 }
 
-void HelloTriangleApplication::createSyncObjects() {
+void App::createSyncObjects() {
 	// resize the vectors
 	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1047,7 +1047,7 @@ void HelloTriangleApplication::createSyncObjects() {
 
 }
 
-void HelloTriangleApplication::recreateSwapChain() {
+void App::recreateSwapChain() {
 	int width = 0, height = 0;
 	glfwGetFramebufferSize(window, &width, &height);
 	while (width == 0 || height == 0) {
@@ -1067,7 +1067,7 @@ void HelloTriangleApplication::recreateSwapChain() {
 }
 
 
-void HelloTriangleApplication::cleanupSwapChain() {
+void App::cleanupSwapChain() {
 
 	for (auto frameBuffer : swapChainFrameBuffers) {
 		vkDestroyFramebuffer(device, frameBuffer, nullptr);
@@ -1082,7 +1082,7 @@ void HelloTriangleApplication::cleanupSwapChain() {
 }
 
 
-void HelloTriangleApplication::createVertexBuffer() {
+void App::createVertexBuffer() {
 
 	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -1106,7 +1106,7 @@ void HelloTriangleApplication::createVertexBuffer() {
 }
 
 
-uint32_t HelloTriangleApplication::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t App::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 	for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
@@ -1118,7 +1118,7 @@ uint32_t HelloTriangleApplication::findMemoryType(uint32_t typeFilter, VkMemoryP
 }
 
 
-void HelloTriangleApplication::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, 
+void App::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, 
 	VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 	
 	VkBufferCreateInfo bufferInfo{};
@@ -1149,7 +1149,7 @@ void HelloTriangleApplication::createBuffer(VkDeviceSize size, VkBufferUsageFlag
 
 
 
-void HelloTriangleApplication::copyBuffer(VkBuffer srcBuffer, VkBuffer destBuffer, VkDeviceSize size) {
+void App::copyBuffer(VkBuffer srcBuffer, VkBuffer destBuffer, VkDeviceSize size) {
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;

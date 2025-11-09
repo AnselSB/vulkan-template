@@ -24,7 +24,7 @@ struct SwapChainSupportDetails {
 };
 
 
-class HelloTriangleApplication {
+class App {
 public:
     void run();
 
